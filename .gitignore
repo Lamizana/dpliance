@@ -1,0 +1,19 @@
+# Secrets & config générée
+.env
+scope.yaml
+
+# Sorties d'exécution
+runs/
+*.jsonl
+*.jsonl.tip
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.egg-info/
+.ruff_cache/
+
+# OS
+.DS_Store
