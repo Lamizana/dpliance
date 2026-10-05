@@ -13,6 +13,13 @@ class ProbeResult(BaseModel):
     found: bool
     evidence: str
     finding: Finding | None = None
+    findings: list[Finding] = []
+
+    def all_findings(self) -> list[Finding]:
+        """Findings du run : la liste si fournie, sinon le finding unique, sinon []."""
+        if self.findings:
+            return self.findings
+        return [self.finding] if self.finding is not None else []
 
 
 @runtime_checkable

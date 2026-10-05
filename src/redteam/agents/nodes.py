@@ -97,8 +97,7 @@ async def attacker_node(state: AuditState) -> AuditState:
         executed.add(key)
         _emit(state, agent="attacker", phase="act", type="tool_call", tool=probe.id,
               http_count=client.count, rationale=step.description)
-        if result.found and result.finding is not None:
-            raw.append(result.finding)
+        raw.extend(result.all_findings())
     state["raw_findings"] = raw
     return state
 
