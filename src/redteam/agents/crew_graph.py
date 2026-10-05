@@ -10,12 +10,6 @@ from redteam.agents.state import AuditState
 from redteam.monitoring.trace import TraceEvent
 
 
-async def _maybe_replan(state: AuditState) -> AuditState:
-    # Boucle d'adaptativité : au plus max_replans tours.
-    state["replans"] = state.get("replans", 0)
-    return state
-
-
 def _route_after_verify(state: AuditState) -> str:
     if state.get("replans", 0) < state.get("max_replans", 1) and state.get("raw_findings"):
         return "replan"
@@ -46,7 +40,10 @@ def build_crew_graph():
     g.add_edge("attacker", "verifier")
     g.add_conditional_edges("verifier", _route_after_verify,
                             {"replan": "replan", "report": "reporter"})
-    g.add_edge("replan", "attacker")
+    # La replanification repasse par le planner : grâce à l'idempotence du
+    # plan/attacker, seules de NOUVELLES hypothèses produisent de nouvelles
+    # étapes ; sinon la passe est vide et _route_after_verify route vers report.
+    g.add_edge("replan", "planner")
     g.add_edge("reporter", END)
     return g.compile()
 

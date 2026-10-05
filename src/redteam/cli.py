@@ -8,10 +8,11 @@ import os
 import typer
 import yaml
 
-from redteam.benchmark.compare import compare_runs
-from redteam.benchmark.metrics import RunMetrics
+from redteam.benchmark.compare import compare_runs, load_ground_truth, quality_report
+from redteam.benchmark.metrics import RunMetrics, quality
 from redteam.config import load_settings
 from redteam.llm.backend import FeatherlessBackend, MockBackend
+from redteam.monitoring.live import LiveConsole
 from redteam.monitoring.trace import TraceLog
 from redteam.runner import build_state, run_graph
 from redteam.safety.audit import AuditLog
@@ -22,6 +23,7 @@ from redteam.safety.signing import SigningKeyError, default_signer
 app = typer.Typer(help="Red Team IA — audit cybersécurité adaptatif sous mandat.")
 
 TEMPLATE = "config/scope.template.yaml"
+GROUND_TRUTH = "eval/mirage_ground_truth.yaml"
 
 
 def prepare_scope(target: str):
@@ -67,7 +69,8 @@ def run(mode: str = "crew", target: str = "", mock: bool = False):
     run_dir = os.path.join("runs", f"{mode}-{run_id}")
     os.makedirs(run_dir, exist_ok=True)
     audit = AuditLog(os.path.join(run_dir, "audit.jsonl"))
-    trace = TraceLog(os.path.join(run_dir, "trace.jsonl"), run_id=run_id, mode=mode, audit=audit)
+    trace = TraceLog(os.path.join(run_dir, "trace.jsonl"), run_id=run_id, mode=mode,
+                     audit=audit, live=LiveConsole(enabled=True))
     state = build_state(mode=mode, target=target, scope=scope, guard=guard,
                         backend=_backend(settings, mock), trace=trace)
     out = asyncio.run(run_graph(state, run_dir=run_dir))
@@ -85,22 +88,30 @@ def run(mode: str = "crew", target: str = "", mock: bool = False):
 def benchmark(modes: str = "single,crew", target: str = "", mock: bool = False):
     settings = load_settings()
     target = target or settings.target
+    truth_ids = load_ground_truth(GROUND_TRUTH)
     results: list[RunMetrics] = []
+    quality_rows: list[tuple[str, dict]] = []
     for mode in modes.split(","):
         mode = mode.strip()
         scope, guard = prepare_scope(target)
         run_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S-") + mode
         run_dir = os.path.join("runs", f"bench-{run_id}")
         os.makedirs(run_dir, exist_ok=True)
-        trace = TraceLog(os.path.join(run_dir, "trace.jsonl"), run_id=run_id, mode=mode)
+        trace = TraceLog(os.path.join(run_dir, "trace.jsonl"), run_id=run_id, mode=mode,
+                         live=LiveConsole(enabled=False))
         state = build_state(mode=mode, target=target, scope=scope, guard=guard,
                             backend=_backend(settings, mock), trace=trace)
         out = asyncio.run(run_graph(state, run_dir=run_dir))
         results.append(RunMetrics(**out["metrics"]))
-    table = compare_runs(results)
+        confirmed_ids = {v["finding"].module_id for v in out["confirmed"]}
+        quality_rows.append((mode, quality(confirmed_ids, truth_ids)))
+    table = compare_runs(results) + quality_report(quality_rows)
     with open("runs/benchmark.md", "w", encoding="utf-8") as fh:
         fh.write(table)
     typer.echo(table)
+    for mode, q in quality_rows:
+        typer.echo(f"[{mode}] précision={q['precision']:.2f} rappel={q['recall']:.2f} "
+                   f"F1={q['f1']:.2f}")
 
 
 if __name__ == "__main__":

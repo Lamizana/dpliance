@@ -52,25 +52,49 @@ async def recon_node(state: AuditState) -> AuditState:
     return state
 
 
+def _executed_steps(state: AuditState) -> set[tuple[str, str]]:
+    """Ensemble des sondes déjà jouées (module_id, target), partagé par le graphe.
+
+    Garantit l'idempotence du plan/attacker : une replanification sans nouvelle
+    hypothèse ne rejoue aucune étape et n'émet donc aucun événement de trace."""
+    executed = state.get("executed_steps")
+    if executed is None:
+        executed = set()
+        state["executed_steps"] = executed
+    return executed
+
+
 async def planner_node(state: AuditState) -> AuditState:
+    executed = _executed_steps(state)
     hyps = state.get("hypotheses", [])
-    state["plan"] = [Step(module_id=h.probe_id, target=h.target,
-                          intensity=PROBES[h.probe_id].intensity, description=h.rationale)
-                     for h in hyps if state["guard"].check(h.target, PROBES[h.probe_id].intensity).allowed]
+    plan: list[Step] = []
+    for h in hyps:
+        if (h.probe_id, h.target) in executed:
+            continue  # déjà exécutée lors d'une passe précédente : pas de rejeu
+        if not state["guard"].check(h.target, PROBES[h.probe_id].intensity).allowed:
+            continue
+        plan.append(Step(module_id=h.probe_id, target=h.target,
+                         intensity=PROBES[h.probe_id].intensity, description=h.rationale))
+    state["plan"] = plan
     _emit(state, agent="planner", phase="plan", type="decision",
-          rationale=f"{len(state['plan'])} étapes dans le périmètre")
+          rationale=f"{len(plan)} étapes dans le périmètre")
     return state
 
 
 async def attacker_node(state: AuditState) -> AuditState:
+    executed = _executed_steps(state)
     raw: list[Finding] = []
     for step in state.get("plan", []):
+        key = (step.module_id, step.target)
+        if key in executed:
+            continue  # garde-fou d'idempotence (le planner filtre déjà)
         probe = get_probe(step.module_id)
         client = state["client_factory"](probe.intensity)
         try:
             result = await probe.run(client, step.target)
         finally:
             await client.aclose()
+        executed.add(key)
         _emit(state, agent="attacker", phase="act", type="tool_call", tool=probe.id,
               http_count=client.count, rationale=step.description)
         if result.found and result.finding is not None:
@@ -79,7 +103,7 @@ async def attacker_node(state: AuditState) -> AuditState:
     return state
 
 
-async def verify_findings(state: AuditState, raw: list[Finding]) -> list[dict]:
+async def verify_findings(state: AuditState, raw: list[Finding], offset: int = 0) -> list[dict]:
     verified: list[dict] = []
     for i, finding in enumerate(raw):
         probe = get_probe(finding.module_id)
@@ -92,18 +116,24 @@ async def verify_findings(state: AuditState, raw: list[Finding]) -> list[dict]:
         status = "confirmed" if has_evidence else "discarded"
         conf = confidence_score(1.0, has_evidence)
         verified.append({"finding": finding, "status": status, "confidence": conf,
-                         "evidence": recheck.evidence, "finding_id": f"F{i + 1}"})
+                         "evidence": recheck.evidence, "finding_id": f"F{offset + i + 1}"})
     return verified
 
 
 async def verifier_node(state: AuditState) -> AuditState:
-    verified = await verify_findings(state, state.get("raw_findings", []))
+    # Numérotation globale et accumulation : une replanification à vide ne doit
+    # ni réécrire ni effacer les findings déjà confirmés.
+    offset = state.get("_verified_count", 0)
+    verified = await verify_findings(state, state.get("raw_findings", []), offset)
     for v in verified:
         _emit(state, agent="verifier", phase="verify", type="verification",
               finding_id=v["finding_id"], severity=v["finding"].severity.value,
               status=v["status"], confidence=v["confidence"],
               rationale=v["evidence"][:120])
-    state["confirmed"] = [v for v in verified if v["status"] == "confirmed"]
+    confirmed = state.get("confirmed") or []
+    confirmed.extend(v for v in verified if v["status"] == "confirmed")
+    state["confirmed"] = confirmed
+    state["_verified_count"] = offset + len(verified)
     return state
 
 

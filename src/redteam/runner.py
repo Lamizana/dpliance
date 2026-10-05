@@ -13,8 +13,10 @@ from redteam.agents.state import AuditState
 from redteam.benchmark.metrics import metrics_from_trace
 from redteam.report.html import render_html
 from redteam.report.markdown import render_markdown
+from redteam.safety.audit import export_bundle
 from redteam.safety.domain import Intensity
 from redteam.safety.guard import ScopeGuard
+from redteam.safety.signing import SigningKeyError, default_signer
 from redteam.tools.crawler import crawl
 from redteam.tools.http_client import GuardedHttpClient
 
@@ -29,11 +31,29 @@ def build_state(mode: str, target: str, scope, guard: ScopeGuard, backend, trace
     return {
         "run_id": datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), "mode": mode,
         "target": target, "surface": surface, "hypotheses": [], "plan": [],
-        "raw_findings": [], "confirmed": [], "replans": 0, "max_replans": max_replans,
+        "raw_findings": [], "confirmed": [], "executed_steps": set(),
+        "replans": 0, "max_replans": max_replans, "_verified_count": 0,
         "report_md": "", "backend": backend, "guard": guard, "trace": trace,
         "client_factory": client_factory, "_scope": scope, "_transport": transport,
         "_crawl_pages": crawl_pages,
     }
+
+
+def _audit_bundle(state: AuditState) -> dict | None:
+    """Résumé d'intégrité du journal d'audit, si une trace chaînée existe.
+
+    Au moment du rapport, le checkpoint signé n'est pas encore écrit : le bundle
+    rapporte donc honnêtement une chaîne cohérente mais non ancrée (on ne simule
+    aucun ancrage). Sans trace ou sans audit (benchmark/tests), retourne None."""
+    trace = state.get("trace")
+    audit = getattr(trace, "audit", None) if trace is not None else None
+    if audit is None:
+        return None
+    try:
+        signer = default_signer()
+    except SigningKeyError:
+        signer = None
+    return export_bundle(audit.path, signer)
 
 
 async def run_graph(state: AuditState, run_dir: str) -> dict:
@@ -56,7 +76,7 @@ async def run_graph(state: AuditState, run_dir: str) -> dict:
     events = state["trace"].events() if state.get("trace") is not None else []
     m = metrics_from_trace(events, duration_s=round(duration, 3))
     md = render_markdown(scope=scope, confirmed=out.get("confirmed", []), summary=summary,
-                         audit_bundle=None, metrics=m.model_dump())
+                         audit_bundle=_audit_bundle(state), metrics=m.model_dump())
     with open(os.path.join(run_dir, "report.md"), "w", encoding="utf-8") as fh:
         fh.write(md)
     with open(os.path.join(run_dir, "report.html"), "w", encoding="utf-8") as fh:

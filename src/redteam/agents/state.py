@@ -24,6 +24,7 @@ class AuditState(TypedDict, total=False):
     plan: list[Step]
     raw_findings: list[Finding]
     confirmed: list[dict[str, Any]]
+    executed_steps: set[tuple[str, str]]
     replans: int
     report_md: str
     # handles d'exécution (non sérialisés dans le rapport)
@@ -36,3 +37,4 @@ class AuditState(TypedDict, total=False):
     _scope: Any
     _transport: Any
     _crawl_pages: int
+    _verified_count: int

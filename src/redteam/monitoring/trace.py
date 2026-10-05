@@ -6,9 +6,14 @@ de ce que l'IA a réellement fait.
 """
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel
 
 from redteam.safety.audit import AuditLog
+
+if TYPE_CHECKING:
+    from redteam.monitoring.live import LiveConsole
 
 CRITICAL_TYPES = {"decision", "finding", "verification", "strategy_change", "error"}
 
@@ -35,11 +40,13 @@ class TraceEvent(BaseModel):
 
 
 class TraceLog:
-    def __init__(self, path: str, run_id: str, mode: str, audit: AuditLog | None = None):
+    def __init__(self, path: str, run_id: str, mode: str, audit: AuditLog | None = None,
+                 live: LiveConsole | None = None):
         self.path = path
         self.run_id = run_id
         self.mode = mode
         self.audit = audit
+        self.live = live
 
     def emit(self, event: TraceEvent) -> None:
         with open(self.path, "a", encoding="utf-8") as fh:
@@ -48,6 +55,8 @@ class TraceLog:
             self.audit.append(event.type, event.agent,
                               {"finding_id": event.finding_id, "status": event.status,
                                "rationale": event.rationale})
+        if self.live is not None:
+            self.live.show(event)
 
     def events(self) -> list[TraceEvent]:
         out: list[TraceEvent] = []
