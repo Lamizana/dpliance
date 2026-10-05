@@ -24,6 +24,11 @@ def confidence_score(llm_claim: float, has_evidence: bool) -> float:
     return 0.3 * llm_claim + 0.7 * (1.0 if has_evidence else 0.0)
 
 
+def finding_signature(f: Finding) -> tuple[str, str, str]:
+    """Signature stable d'un finding pour l'appariement au rejeu (outils non déterministes)."""
+    return (f.module_id, f.target, f.title)
+
+
 def _emit(state: AuditState, **kw) -> None:
     trace = state.get("trace")
     if trace is not None:
@@ -103,19 +108,35 @@ async def attacker_node(state: AuditState) -> AuditState:
 
 
 async def verify_findings(state: AuditState, raw: list[Finding], offset: int = 0) -> list[dict]:
+    # Grouper par (module_id, target) pour ne rejouer chaque sonde qu'UNE fois.
+    groups: dict[tuple[str, str], list[Finding]] = {}
+    order: list[tuple[str, str]] = []
+    for f in raw:
+        key = (f.module_id, f.target)
+        if key not in groups:
+            groups[key] = []
+            order.append(key)
+        groups[key].append(f)
+
     verified: list[dict] = []
-    for i, finding in enumerate(raw):
-        probe = get_probe(finding.module_id)
+    i = 0
+    for module_id, target in order:
+        probe = get_probe(module_id)
         client = state["client_factory"](probe.intensity)
         try:
-            recheck = await probe.run(client, finding.target)
+            recheck = await probe.run(client, target)
         finally:
             await client.aclose()
-        has_evidence = recheck.found
-        status = "confirmed" if has_evidence else "discarded"
-        conf = confidence_score(1.0, has_evidence)
-        verified.append({"finding": finding, "status": status, "confidence": conf,
-                         "evidence": recheck.evidence, "finding_id": f"F{offset + i + 1}"})
+        reproduced = {finding_signature(g) for g in recheck.all_findings()}
+        for f in groups[(module_id, target)]:
+            has_evidence = finding_signature(f) in reproduced
+            status = "confirmed" if has_evidence else "discarded"
+            verified.append({
+                "finding": f, "status": status,
+                "confidence": confidence_score(1.0, has_evidence),
+                "evidence": recheck.evidence, "finding_id": f"F{offset + i + 1}",
+            })
+            i += 1
     return verified
 
 
