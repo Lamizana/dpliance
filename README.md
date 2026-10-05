@@ -60,6 +60,42 @@ s'exécute sans réseau ni clé API.
 
 ---
 
+## Exécution en conteneur (outils réels)
+
+Pour une **couverture réelle**, le PoC s'appuie sur de vrais outils de sécurité via des
+**adaptateurs** respectant le contrat `Probe`. Ces outils sont des binaires externes : l'image
+Docker fournie (base Debian) les embarque pour un audit complet.
+
+| Adaptateur (id de sonde) | Outil | Intensité | Rôle |
+|---|---|---|---|
+| `tool.nuclei` | **nuclei** | active | Détection par templates (preuve JSON reproductible). |
+| `tool.nmap` | **nmap** | active | Services/versions + scripts NSE `vuln and not dos`. |
+| `tool.sqlmap` | **sqlmap** | intrusive | Preuve d'exploitation SQLi (sans `--dump`). |
+
+```bash
+# Construire l'image (installe nuclei + nmap + sqlmap + le PoC)
+docker build -t redteam-ia .
+
+# Lancer un audit ; .env fournit les clés/cibles, runs/ est monté pour récupérer les sorties
+docker run --rm --env-file .env -v "$PWD/runs:/app/runs" \
+  redteam-ia run --mode crew --target "$MIRAGE_TARGET"
+```
+
+L'`ENTRYPOINT` de l'image est la commande `redteam` : les arguments passés à `docker run`
+(`run --mode crew ...`) la complètent directement.
+
+> **Dégradation propre.** Hors conteneur — ou si un outil n'est pas installé — l'adaptateur
+> correspondant **se saute proprement** (`found=False`, « binaire non installé »), sans casser
+> l'audit ni la suite de tests. La couverture est réduite, mais le PoC reste fonctionnel. Toute
+> la suite de tests s'exécute donc **hors conteneur**, sans aucun binaire externe.
+
+Aux côtés de ces adaptateurs, la sonde HTTP maison **`web.availability`** (active) prouve les
+**faiblesses menant à un déni de service** (`xmlrpc.php` exposé, absence de rate-limiting
+observable, absence d'empreinte de WAF/CDN) **sans mettre la cible en charge** — elle ne requiert
+aucun binaire externe.
+
+---
+
 ## Usage
 
 Point d'entrée : la commande `redteam` (ou `python -m redteam.cli`).

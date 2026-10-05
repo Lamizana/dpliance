@@ -93,7 +93,43 @@ et reproductible** de la qualité, comparable entre modes et entre modèles.
 
 ---
 
-## 3. Limites, échecs et pistes d'amélioration
+## 3. Éprouver la cible : paliers d'intensité et le choix du non-DoS
+
+Signaler un indice ne suffit pas : le PoC cherche à **éprouver** la cible, c'est-à-dire à
+confirmer une faiblesse par une preuve produite par un outil. L'intensité est graduée et
+plafonnée par le scope signé (`ScopeGuard`) :
+
+| Palier | Ce qu'on s'autorise | Sondes |
+|---|---|---|
+| `passive` | Observation sans toucher à la cible (crawl de reconnaissance). | crawler |
+| `active` | Sondage non destructif, détection. | 4 sondes HTTP maison, `web.availability`, `tool.nuclei`, `tool.nmap` |
+| `intrusive` | Preuve d'exploitation, **confirmée** explicitement (`--yes`/palier intrusif du scope). | `tool.sqlmap` |
+
+Les adaptateurs d'outils réels (`tools/adapters/`) étendent la couverture :
+
+- **`tool.nuclei`** (active) — détection par templates, preuve JSON reproductible.
+- **`tool.nmap`** (active) — services/versions + scripts NSE `vuln and not dos` (**jamais** la
+  catégorie `dos`).
+- **`tool.sqlmap`** (intrusive) — preuve d'exploitation SQLi via un identifiant anodin
+  (`--banner`), **sans jamais** `--dump` : on prouve l'accès, on n'exfiltre aucune donnée.
+
+### Le choix explicite de NE PAS faire de DoS
+
+Le PoC **ne produit aucun module de déni de service** (DoS/DDoS). Un lanceur de DoS est une
+capacité destructive, indépendante de la cible, exclue des engagements de pentest sérieux. Le
+**risque** de déni de service reste couvert — mais **sans couper le service** :
+
+- la sonde maison **`web.availability`** (active) *prouve* les faiblesses menant au DoS (absence
+  de rate-limiting observable, `xmlrpc.php` exposé/amplification, absence d'empreinte de WAF/CDN) par
+  quelques requêtes légères bornées, **sans montée en charge** ;
+- une véritable mesure de tenue en charge (test de charge **borné** sur la réplique de staging)
+  relève d'un exercice dédié, **hors périmètre de ce PoC**.
+
+On prouve donc la vulnérabilité à l'indisponibilité sans jamais la déclencher.
+
+---
+
+## 4. Limites, échecs et pistes d'amélioration
 
 Section critique assumée : ce PoC privilégie la **clarté de la démonstration** et la **sûreté**
 à l'exhaustivité.
@@ -105,13 +141,28 @@ coût et disponibilité sont des facteurs externes. Le `MockBackend` offline pr�
 reproductibilité des tests et des démos, mais ne mesure **pas** la qualité réelle d'un LLM.
 *Piste :* intégrer un backend local (Ollama/vLLM) et comparer qualité ↔ coût ↔ latence.
 
-### Couverture de sondes volontairement restreinte
+### Couverture de sondes bornée par le registre
 
-Quatre sondes de détection seulement (`web.security_headers`, `web.version_disclosure`,
-`web.exposed_endpoints`, `web.reflected_input`), toutes non-armées par choix de périmètre. Le
-**rappel est donc plafonné** par construction : l'IA ne peut trouver que ce que les sondes
-savent observer. *Piste :* enrichir le registre (`tools/probes/`) — la structure `ProbeRegistry`
-rend l'ajout mécanique — tout en gardant la discipline détection/preuve.
+Le registre compte huit sondes : quatre sondes HTTP maison (`web.security_headers`,
+`web.version_disclosure`, `web.exposed_endpoints`, `web.reflected_input`), la sonde de
+disponibilité `web.availability`, et trois adaptateurs d'outils réels (`tool.nuclei`,
+`tool.nmap`, `tool.sqlmap`). Le **rappel reste plafonné** par construction : l'IA ne trouve que
+ce que ces sondes savent observer, et les adaptateurs ne rapportent que si l'outil est installé
+(hors conteneur, ils se sautent proprement → couverture réduite). *Piste :* enrichir le registre
+(`tools/probes/`, `tools/adapters/`) — l'ajout est mécanique — tout en gardant la discipline
+détection/preuve.
+
+### Limite résiduelle : un outil externe n'est plus arbitré une fois lancé
+
+Les adaptateurs (`nuclei`/`nmap`/`sqlmap`) sont des **binaires** qui font leurs propres appels
+réseau : ils n'empruntent pas le `GuardedHttpClient`. Le confinement est donc **pré-lancement**
+seulement — `guard.authorize(target, intensity)` avant tout `subprocess`, cible unique, options
+sûres (pas de `dos`, pas de `--dump`), timeout, skip si absent. **Une fois le binaire lancé sur
+l'hôte autorisé, le `ScopeGuard` ne peut plus l'arbitrer requête par requête** : on fait
+confiance à l'outil pour rester sur la cible. C'est une limite **assumée et documentée** ; le
+confinement pré-lancement + mono-cible la réduit fortement, mais ne l'élimine pas comme le fait
+la porte réseau unique pour les sondes maison. *Piste :* exécuter chaque outil dans un namespace
+réseau restreint à l'hôte autorisé (confinement OS), au-delà du périmètre de ce PoC.
 
 ### Maintien du ground truth
 

@@ -25,7 +25,8 @@ def _mk(guard, intensity, transport):
 
 def _fake_finding(probe_id):
     return Finding(module_id=probe_id, target="http://localhost/", severity=Severity.MEDIUM,
-                   title="t", evidence="e", remediation=Remediation(summary="s", reference="r"))
+                   title="En-têtes de sécurité manquants", evidence="e",
+                   remediation=Remediation(summary="s", reference="r"))
 
 
 async def test_confirmed_when_evidence_reproduced():
