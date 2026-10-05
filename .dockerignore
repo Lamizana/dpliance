@@ -1,0 +1,22 @@
+# Secrets & config générée (jamais dans l'image)
+.env
+scope.yaml
+
+# Sorties d'exécution (montées en volume au runtime)
+runs/
+
+# Métadonnées de dépôt et outils
+.git
+.gitignore
+.superpowers/
+
+# Caches Python / lint
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.egg-info/
+.ruff_cache/
+
+# OS
+.DS_Store

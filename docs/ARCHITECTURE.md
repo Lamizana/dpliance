@@ -23,6 +23,7 @@ vont du haut (orchestration) vers le bas (sûreté).
 │  llm/         │  tools/              │  monitoring/            │
 │   backend     │   http_client (gate) │   trace (TraceEvent)    │
 │   models      │   crawler · probes/  │   live · callbacks      │
+│               │   adapters/ (outils) │                         │
 ├───────────────┴──────────────────────┴───────────────────────-┤
 │  benchmark/        metrics · compare (mono vs crew, qualité)   │
 │  report/           markdown · html                             │
@@ -36,7 +37,7 @@ vont du haut (orchestration) vers le bas (sûreté).
 |---|---|---|
 | `safety/` | Invariant de sûreté : périmètre signé, autorisation, audit infalsifiable. | `domain.py`, `signing.py`, `scope.py`, `guard.py`, `audit.py` |
 | `llm/` | Abstraction LLM (Featherless/OpenAI-compatible) + mock offline, catalogue modèles↔rôles. | `backend.py`, `models.py` |
-| `tools/` | Toute I/O réseau : client budgété et guardé, crawler, sondes de détection. | `http_client.py`, `crawler.py`, `registry.py`, `probes/` |
+| `tools/` | Toute I/O réseau : client budgété et guardé, crawler, sondes de détection, adaptateurs d'outils externes. | `http_client.py`, `crawler.py`, `registry.py`, `probes/`, `adapters/` |
 | `agents/` | Nœuds LangGraph de raisonnement ; **aucune I/O réseau directe**. | `state.py`, `prompts.py`, `parsing.py`, `nodes.py`, `crew_graph.py`, `single_agent.py` |
 | `monitoring/` | Traçage unifié, rendu live, pont vers l'audit chaîné. | `trace.py`, `live.py`, `callbacks.py` |
 | `benchmark/` | Agrégation de métriques, qualité (précision/rappel/F1), comparaison. | `metrics.py`, `compare.py` |
@@ -74,6 +75,47 @@ Le périmètre lui-même est un **`Scope` signé** (HMAC via `safety/signing`, c
 post-signature. Comme le crawler et **toutes** les sondes n'accèdent au réseau qu'au travers de
 ce client, le `ScopeGuard` est le **point de contrôle unique et incontournable** : aucun chemin
 ne permet de contacter une cible non autorisée.
+
+### 2.1 Adaptateurs d'outils externes (`tools/adapters/`)
+
+Pour une couverture réelle, le PoC intègre de vrais outils (`nuclei`, `nmap`, `sqlmap`) sous
+forme d'**adaptateurs**. La classe de base `ToolAdapter` **implémente le contrat `Probe`**
+(mêmes `id`, `intensity`, `description`, même `run(client, target) -> ProbeResult`) : pour le
+reste du système, un adaptateur est une sonde comme une autre, enregistrée dans `registry.py`
+(`tool.nuclei`, `tool.nmap` en `active` ; `tool.sqlmap` en `intrusive`).
+
+**Problème de sûreté.** Ces outils sont des **binaires** qui font leurs propres appels réseau :
+ils **n'empruntent pas** le `GuardedHttpClient` et échappent donc à l'arbitrage requête-par-
+requête du `ScopeGuard`. `ToolAdapter.run` impose un **confinement pré-lancement** en quatre
+temps :
+
+1. **Autoriser → avant tout `subprocess`** : `client.guard.authorize(target, client.intensity)`
+   (`client.guard`/`client.intensity` exposés en lecture seule sur le client). Hors périmètre =
+   `ScopeViolation`, le binaire n'est **jamais** lancé.
+2. **Mono-cible** : `build_argv(target)` ne passe qu'**un seul hôte/URL** avec des options qui
+   empêchent l'outil de divaguer (nmap mono-hôte ; nuclei sur l'hôte ; sqlmap `--crawl=0`,
+   **jamais** `--dump` ; nmap script `vuln and not dos`, **jamais** la catégorie `dos`).
+3. **Bornage** : `timeout` d'exécution (le process est tué au dépassement) et plafond de taille
+   de sortie capturée.
+4. **Skip propre** : `shutil.which(self.binary) is None` → `ProbeResult(found=False, …)` sans
+   erreur. Un outil absent ou qui échoue **ne casse pas l'audit** (hors conteneur, la suite de
+   tests reste verte).
+
+> **Limite résiduelle assumée** : une fois le binaire lancé sur l'hôte autorisé, le `ScopeGuard`
+> ne peut plus l'arbitrer requête par requête. Le confinement pré-lancement + mono-cible +
+> options réduisent fortement ce risque ; il est documenté dans `METHODOLOGIE.md`.
+
+**N findings par run.** Un outil produit souvent **plusieurs** résultats. `ProbeResult` porte
+donc une liste `findings: list[Finding]` (en plus du `finding` unique historique des 4 sondes
+maison) ; `ProbeResult.all_findings()` unifie les deux. L'`attacker` collecte
+`result.all_findings()`.
+
+**Verifier par signature.** Les outils n'étant pas parfaitement déterministes, « preuve
+reproductible » devient : **l'outil re-signale le même finding** au rejeu. `verify_findings`
+(dans `agents/nodes.py`) groupe les candidats par `module_id`, **re-exécute chaque sonde une
+seule fois** par `(module_id, target)`, et confirme un candidat si sa **signature**
+`finding_signature(f) = (module_id, target, title)` réapparaît dans `all_findings()` du rejeu —
+sinon il est `discarded`. Le `confidence_score` (0.3·LLM + 0.7·preuve) est inchangé.
 
 ---
 

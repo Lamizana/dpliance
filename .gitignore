@@ -2,10 +2,11 @@
 .env
 scope.yaml
 
-# Sorties d'exécution
+# Sorties d'exécution (ne pas ignorer les fixtures de test versionnées)
 runs/
-*.jsonl
+runs/**/*.jsonl
 *.jsonl.tip
+!tests/fixtures/
 
 # Python
 __pycache__/
