@@ -22,3 +22,18 @@ def test_parse_maps_severity_and_title():
 
 def test_parse_tolerates_garbage():
     assert NucleiAdapter().parse("not json\n\n{bad", "http://localhost/") == []
+
+
+def test_parse_dedups_identical_signature():
+    # Même template-id + info.name (donc même titre/signature), matched-at différent :
+    # un seul finding doit survivre (dédoublonnage par signature dans un run).
+    jsonl = (
+        '{"template-id": "dup-tmpl", "info": {"name": "Dup Finding", "severity": "high"}, '
+        '"matched-at": "http://localhost/a"}\n'
+        '{"template-id": "dup-tmpl", "info": {"name": "Dup Finding", "severity": "high"}, '
+        '"matched-at": "http://localhost/b"}\n'
+    )
+    fs = NucleiAdapter().parse(jsonl, "http://localhost/")
+    assert len(fs) == 1
+    assert "dup-tmpl" in fs[0].title
+    assert "http://localhost/a" in fs[0].evidence  # première occurrence conservée

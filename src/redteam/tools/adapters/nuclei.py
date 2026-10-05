@@ -22,6 +22,7 @@ class NucleiAdapter(ToolAdapter):
 
     def parse(self, stdout: str, target: str) -> list[Finding]:
         findings: list[Finding] = []
+        seen: set[tuple[str, str, str]] = set()  # signatures déjà émises dans ce run
         for line in stdout.splitlines():
             line = line.strip()
             if not line:
@@ -35,9 +36,17 @@ class NucleiAdapter(ToolAdapter):
             sev = _SEV.get(str(info.get("severity", "info")).lower(), Severity.INFO)
             matched = obj.get("matched-at", target)
             ref = (info.get("reference") or ["nuclei"])
+            title = f"{info.get('name', tid)} [{tid}]"
+            # Dédoublonnage par signature (module_id, target, title) : un même template
+            # matché à plusieurs endroits ne doit pas gonfler confirmed_count. On garde
+            # la première occurrence et on préserve l'ordre d'apparition.
+            signature = (self.id, target, title)
+            if signature in seen:
+                continue
+            seen.add(signature)
             findings.append(Finding(
                 module_id=self.id, target=target, severity=sev,
-                title=f"{info.get('name', tid)} [{tid}]",
+                title=title,
                 evidence=f"matched-at: {matched} ({obj.get('matcher-name', '')})".strip(),
                 remediation=Remediation(summary="Corriger selon le template nuclei.",
                                         reference=ref[0] if isinstance(ref, list) else str(ref))))
