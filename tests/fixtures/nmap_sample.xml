@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<nmaprun>
+  <host>
+    <ports>
+      <port protocol="tcp" portid="443">
+        <state state="open"/>
+        <service name="http" product="nginx" version="1.18.0"/>
+        <script id="http-vuln-cve2021-1234" output="VULNERABLE: Example issue on /app"/>
+      </port>
+    </ports>
+  </host>
+</nmaprun>
