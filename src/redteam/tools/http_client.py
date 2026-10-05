@@ -30,6 +30,14 @@ class GuardedHttpClient:
     def count(self) -> int:
         return self._count
 
+    @property
+    def guard(self) -> ScopeGuard:
+        return self._guard
+
+    @property
+    def intensity(self) -> Intensity:
+        return self._intensity
+
     async def request(self, method: str, url: str, **kw) -> httpx.Response:
         self._guard.authorize(url, self._intensity)  # lève ScopeViolation si hors scope
         if self._count >= self._max:
