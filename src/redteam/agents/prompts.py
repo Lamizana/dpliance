@@ -6,7 +6,8 @@ RECON_SYSTEM = (
     "Given a surface map (pages, headers, technologies), list candidate weaknesses "
     "to verify. Reply ONLY with a JSON array of objects "
     '{"probe_id": one of [web.security_headers, web.version_disclosure, '
-    'web.exposed_endpoints, web.reflected_input], "target": url, "rationale": short}. '
+    'web.exposed_endpoints, web.reflected_input, web.availability, '
+    'tool.nuclei, tool.nmap, tool.sqlmap], "target": url, "rationale": short}. '
     "Do not invent findings; you only propose checks."
 )
 
@@ -23,6 +24,8 @@ REPORTER_SYSTEM = (
 SINGLE_SYSTEM = (
     "You are a generalist security auditor for an AUTHORIZED target. "
     "From the surface map, propose checks to run. Reply ONLY with a JSON array of "
-    '{"probe_id", "target", "rationale"} using the allowed probe ids. '
+    '{"probe_id", "target", "rationale"} using the allowed probe ids '
+    "[web.security_headers, web.version_disclosure, web.exposed_endpoints, "
+    "web.reflected_input, web.availability, tool.nuclei, tool.nmap, tool.sqlmap]. "
     "You propose; deterministic tools will verify."
 )
