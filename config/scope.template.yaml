@@ -1,0 +1,14 @@
+mission: "Audit Red Team IA — cible Mirage (DPLIANCE)"
+mandate_ref: "HACKATHON-NEOLOJI-2026"
+client_contact: "hichem@dpliance.com"
+authorized:
+  domains: ["localhost"]
+  ips: ["127.0.0.1/32"]
+excluded: []
+window:
+  start: "2026-10-01"
+  end: "2026-12-31"
+allowed_intensity: "active"
+sandbox: {}
+limits:
+  max_requests_per_module: 500
