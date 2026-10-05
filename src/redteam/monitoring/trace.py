@@ -6,8 +6,6 @@ de ce que l'IA a réellement fait.
 """
 from __future__ import annotations
 
-import json
-
 from pydantic import BaseModel
 
 from redteam.safety.audit import AuditLog
