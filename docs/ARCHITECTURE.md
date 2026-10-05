@@ -93,7 +93,8 @@ temps :
    (`client.guard`/`client.intensity` exposés en lecture seule sur le client). Hors périmètre =
    `ScopeViolation`, le binaire n'est **jamais** lancé.
 2. **Mono-cible** : `build_argv(target)` ne passe qu'**un seul hôte/URL** avec des options qui
-   empêchent l'outil de divaguer (nmap mono-hôte ; nuclei sur l'hôte ; sqlmap `--crawl=0`,
+   empêchent l'outil de divaguer (nmap réduit au seul hôte ; nuclei reçoit l'URL cible via
+   `-target <url>` ; sqlmap `--crawl=0`,
    **jamais** `--dump` ; nmap script `vuln and not dos`, **jamais** la catégorie `dos`).
 3. **Bornage** : `timeout` d'exécution (le process est tué au dépassement) et plafond de taille
    de sortie capturée.

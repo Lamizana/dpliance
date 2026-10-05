@@ -90,8 +90,9 @@ L'`ENTRYPOINT` de l'image est la commande `redteam` : les arguments passés à `
 > la suite de tests s'exécute donc **hors conteneur**, sans aucun binaire externe.
 
 Aux côtés de ces adaptateurs, la sonde HTTP maison **`web.availability`** (active) prouve les
-**faiblesses menant à un déni de service** (absence de rate-limiting, `xmlrpc.php` exposé, temps
-de réponse anormal) **sans mettre la cible en charge** — elle ne requiert aucun binaire externe.
+**faiblesses menant à un déni de service** (`xmlrpc.php` exposé, absence de rate-limiting
+observable, absence d'empreinte de WAF/CDN) **sans mettre la cible en charge** — elle ne requiert
+aucun binaire externe.
 
 ---
 

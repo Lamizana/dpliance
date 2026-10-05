@@ -120,7 +120,7 @@ capacité destructive, indépendante de la cible, exclue des engagements de pent
 **risque** de déni de service reste couvert — mais **sans couper le service** :
 
 - la sonde maison **`web.availability`** (active) *prouve* les faiblesses menant au DoS (absence
-  de rate-limiting, `xmlrpc.php` exposé/amplification, endpoint au temps de réponse anormal) par
+  de rate-limiting observable, `xmlrpc.php` exposé/amplification, absence d'empreinte de WAF/CDN) par
   quelques requêtes légères bornées, **sans montée en charge** ;
 - une véritable mesure de tenue en charge (test de charge **borné** sur la réplique de staging)
   relève d'un exercice dédié, **hors périmètre de ce PoC**.
