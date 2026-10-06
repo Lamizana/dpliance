@@ -15,9 +15,16 @@ class NucleiAdapter(ToolAdapter):
     intensity = Intensity.ACTIVE
     description = "Détection de vulnérabilités par templates (nuclei)."
     binary = "nuclei"
+    # nuclei (même templates pré-embarqués) scanne des milliers de templates : 120 s
+    # est trop court. On borne large ; l'image pré-charge les templates au build.
+    timeout = 600.0
 
     def build_argv(self, target: str) -> list[str]:
+        # -disable-update-check : ne pas retélécharger les templates au runtime (ils sont
+        #   pré-embarqués dans l'image) ; -no-interactsh : pas de tests OOB (scan borné,
+        #   pas de dépendance à un serveur interactsh externe).
         return [self.binary, "-target", target, "-jsonl", "-silent", "-no-color",
+                "-disable-update-check", "-no-interactsh",
                 "-rate-limit", "50", "-severity", "info,low,medium,high,critical"]
 
     def parse(self, stdout: str, target: str) -> list[Finding]:
