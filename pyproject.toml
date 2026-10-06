@@ -14,7 +14,7 @@ dependencies = [
     "PyYAML>=6.0",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = ["pytest>=8", "pytest-asyncio>=0.23", "ruff>=0.5"]
 
 [project.scripts]

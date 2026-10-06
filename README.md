@@ -37,12 +37,17 @@ autorisation écrite valide incombe à l'opérateur.
 
 ## Installation
 
-Python **3.11+** requis.
+Gestion des dépendances via [**uv**](https://docs.astral.sh/uv/) (installe un Python 3.11
+isolé si besoin — plus de conflit avec le Python système).
 
 ```bash
-pip install -e ".[dev]"
-cp .env.example .env   # puis renseigner les variables ci-dessous
+# Installer uv (une fois) : https://docs.astral.sh/uv/getting-started/installation/
+uv sync                 # crée .venv et installe tout (deps + outils dev) depuis uv.lock
+cp .env.example .env     # puis renseigner les variables ci-dessous
 ```
+
+Les commandes se lancent ensuite via `uv run` (ex. `uv run redteam ...`, `uv run pytest`),
+ou en activant l'environnement avec `source .venv/bin/activate`.
 
 ### Configuration (`.env`)
 
