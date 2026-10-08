@@ -268,11 +268,97 @@
     <div class="footer"><span>Red Team IA — synthèse d'audit</span></div>
   </section>
 
+  <!-- 7 — Synthèse : ce qu'on a fait vs dossier audit -->
+  <section class="slide">
+    <div class="kicker">Synthèse</div>
+    <h2>Ce qu'on a fait, par rapport au dossier audit</h2>
+    <div class="cols">
+      <div class="card">
+        <h3>Ce qu'on a apporté concrètement</h3>
+        <ul>
+          <li><b>Intégration ciblée « hackingtool »</b> : gobuster + sondes <b>web.cors</b>, <b>web.cookies</b>, <b>web.wellknown</b> → <b>12 sondes</b> (8 maison + 4 adaptateurs)</li>
+          <li><b>Code + tests</b> : adaptateurs + wordlist 88 entrées ≤ 100, <b>74 tests passés</b>, <b>ruff OK</b></li>
+          <li><b>Démonstration validée</b> : run crew — <b>12 findings confirmés</b>, <b>0 faux-positif</b></li>
+          <li><b>Slides audit</b> enrichis pour présenter intégration, composants et résultats</li>
+          <li><b>Base saine</b> : hors ligne, bornée, confinement ScopeGuard, skip propre</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:2rem">
+      <h3>Résumé simple</h3>
+      <p>On a enrichi le PoC de manière <b>mesurée</b> et <b>charter-compatible</b> (cherry-pick du catalogue hackingtool), documenté dans le dossier <code>audit/</code>, validé par tests et démontré sur un run crew fonctionnel.</p>
+    </div>
+    <div class="footer"><span>Red Team IA — synthèse d'audit</span></div>
+  </section>
+
+  <!-- 8 — Problèmes identifiés -->
+  <section class="slide">
+    <div class="kicker">Retour critique</div>
+    <h2>Problèmes identifiés</h2>
+    <div class="cols">
+      <div class="card">
+        <h3>Replanification / adaptabilité</h3>
+        <ul>
+          <li><b>Boucle replan vide</b> : les 2 runs crew ont fait <code>strategy_change</code> → <code>0 étapes dans le périmètre</code></li>
+          <li><code>_replan_node</code> n'ajoute <b>aucune nouvelle hypothèse</b>, il incrémente juste un compteur</li>
+          <li>Le LLM n'est <b>jamais rappelé</b> avec un feedback concret → l'adaptabilité promise ne fonctionne pas réellement</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Configuration LLM</h3>
+        <ul>
+          <li><b>Pas de température/max_tokens par rôle</b></li>
+          <li><b>MODEL_CATALOG mono-modèle</b> (impossible de varier par agent)</li>
+          <li><b>Aucune contrainte de langue</b> imposée aux rationales (anglais observé dans traces, rapport FR)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:2rem">
+      <h3>Code mort / incohérences</h3>
+      <ul>
+        <li><code>PLANNER_SYSTEM</code> et <code>SINGLE_SYSTEM</code> définis dans <code>prompts.py:14,24</code> — <b>jamais importés</b></li>
+        <li><code>nodes.py</code> n'utilise que <code>RECON_SYSTEM</code> + <code>REPORTER_SYSTEM</code></li>
+        <li>Mode <b>single</b> passe par <code>recon_node</code> avec <code>RECON_SYSTEM</code> (système pas dédié au mode single)</li>
+      </ul>
+    </div>
+    <div class="footer"><span>Red Team IA — synthèse d'audit</span></div>
+  </section>
+
+  <!-- 9 — Point du jour pour non-connaisseurs -->
+  <section class="slide">
+    <div class="kicker">Point du jour</div>
+    <h2>Ce qu'on a fait aujourd'hui (pour un public non-connaisseur)</h2>
+    <div class="cols">
+      <div class="card">
+        <h3>L'idée simple</h3>
+        <ul>
+          <li>On a un <b>assistant IA</b> qui fait un audit de sécurité web, <b>sur autorisation uniquement</b></li>
+          <li>Plutôt que d'ajouter <b>tous</b> les outils d'une collection (215), on a choisi <b>seulement ceux qui sont utiles et sûrs</b></li>
+          <li>Résultat : un audit <b>borné, traçable et prouvable</b> (chaque anomalie a une preuve)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Ce qu'on a ajouté</h3>
+        <ul>
+          <li><b>4 outils nouveaux</b> : gobuster (recherche de chemins cachés) + 3 sondes (CORS, Cookies, fichiers bien connus)</li>
+          <li><b>12 vérifications</b> au total maintenant (contre 8 avant)</li>
+          <li>Tous les tests passent (<b>74 tests validés</b>), code propre et sûr</li>
+          <li>On a montré le résultat sur un vrai test : <b>12 problèmes confirmés, aucun faux positif</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:2rem">
+      <h3>Le plus important</h3>
+      <p>On privilégie <b>la qualité et la sûreté</b> plutôt que la quantité. L'IA propose des pistes, des outils automatiques <b>prouvent</b> chaque résultat avant de l'affirmer. C'est ça qui fait la différence pour un audit sérieux.</p>
+    </div>
+    <div class="footer"><span>Red Team IA — synthèse d'audit</span></div>
+  </section>
+
 </div>
 
 <div class="nav">
   <button id="prev" aria-label="Précédent">←</button>
-  <span class="count" id="count">1 / 6</span>
+  <span class="count" id="count">1 / 9</span>
   <button id="next" aria-label="Suivant">→</button>
 </div>
 
