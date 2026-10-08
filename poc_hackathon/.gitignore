@@ -1,0 +1,20 @@
+# Secrets & config générée
+.env
+scope.yaml
+
+# Sorties d'exécution (ne pas ignorer les fixtures de test versionnées)
+runs/
+runs/**/*.jsonl
+*.jsonl.tip
+!tests/fixtures/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.egg-info/
+.ruff_cache/
+
+# OS
+.DS_Store
