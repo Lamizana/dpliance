@@ -27,6 +27,15 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"redteam.tools" = ["wordlists/*.txt"]
+
+# Règles ruff épinglees : les défauts changent entre versions (0.16 active
+# DTZ/BLE/ASYNC/SIM… et signale du code existant) — on verrouille le jeu
+# contre lequel le dépôt est rédigé pour un lint reproductible.
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 pythonpath = ["src"]

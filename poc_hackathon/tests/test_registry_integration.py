@@ -10,23 +10,10 @@ from redteam.agents.nodes import attacker_node, verify_findings
 
 
 def test_registry_has_all_probes():
-    for pid in ["web.security_headers", "web.availability",
-                "tool.nuclei", "tool.nmap", "tool.sqlmap",
-                "tool.ffuf", "tool.testssl"]:
+    for pid in ["web.security_headers", "web.availability", "web.cors", "web.cookies",
+                "web.wellknown", "tool.nuclei", "tool.nmap", "tool.sqlmap",
+                "tool.gobuster"]:
         assert pid in PROBES and get_probe(pid).id == pid
-
-
-def test_new_tools_are_active_not_intrusive():
-    from redteam.safety.domain import Intensity
-    assert PROBES["tool.ffuf"].intensity is Intensity.ACTIVE
-    assert PROBES["tool.testssl"].intensity is Intensity.ACTIVE
-
-
-def test_prompts_list_new_tool_ids():
-    # RECON_SYSTEM est généré depuis PROBES : tout outil enregistré y figure.
-    from redteam.agents.prompts import RECON_SYSTEM
-    for prompt in (RECON_SYSTEM,):
-        assert "tool.ffuf" in prompt and "tool.testssl" in prompt
 
 
 def _state(monkeypatch):

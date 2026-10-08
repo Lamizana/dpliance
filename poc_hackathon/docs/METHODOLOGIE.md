@@ -101,8 +101,8 @@ plafonnée par le scope signé (`ScopeGuard`) :
 
 | Palier | Ce qu'on s'autorise | Sondes |
 |---|---|---|
-| `passive` | Observation sans toucher à la cible (crawl de reconnaissance). | crawler |
-| `active` | Sondage non destructif, détection. | 4 sondes HTTP maison, `web.availability`, `tool.nuclei`, `tool.nmap` |
+| `passive` | Observation sans toucher à la cible (crawl de reconnaissance). | crawler, `web.cookies`, `web.wellknown` |
+| `active` | Sondage non destructif, détection. | 4 sondes HTTP maison, `web.availability`, `web.cors`, `tool.nuclei`, `tool.nmap`, `tool.gobuster` |
 | `intrusive` | Preuve d'exploitation, **confirmée** explicitement (`--yes`/palier intrusif du scope). | `tool.sqlmap` |
 
 Les adaptateurs d'outils réels (`tools/adapters/`) étendent la couverture :
@@ -110,6 +110,9 @@ Les adaptateurs d'outils réels (`tools/adapters/`) étendent la couverture :
 - **`tool.nuclei`** (active) — détection par templates, preuve JSON reproductible.
 - **`tool.nmap`** (active) — services/versions + scripts NSE `vuln and not dos` (**jamais** la
   catégorie `dos`).
+- **`tool.gobuster`** (active) — découverte de contenu avec wordlist maison bornée
+  (`tools/wordlists/top-paths.txt`, ≤ 100 entrées) : threads bas + délai entre requêtes,
+  mono-cible, sans follow-redirect ; la preuve est le statut HTTP retourné.
 - **`tool.sqlmap`** (intrusive) — preuve d'exploitation SQLi via un identifiant anodin
   (`--banner`), **sans jamais** `--dump` : on prouve l'accès, on n'exfiltre aucune donnée.
 
@@ -143,10 +146,11 @@ reproductibilité des tests et des démos, mais ne mesure **pas** la qualité r�
 
 ### Couverture de sondes bornée par le registre
 
-Le registre compte huit sondes : quatre sondes HTTP maison (`web.security_headers`,
-`web.version_disclosure`, `web.exposed_endpoints`, `web.reflected_input`), la sonde de
-disponibilité `web.availability`, et trois adaptateurs d'outils réels (`tool.nuclei`,
-`tool.nmap`, `tool.sqlmap`). Le **rappel reste plafonné** par construction : l'IA ne trouve que
+Le registre compte douze sondes : quatre sondes HTTP maison (`web.security_headers`,
+`web.version_disclosure`, `web.exposed_endpoints`, `web.reflected_input`), les sondes de
+disponibilité et de configuration `web.availability`, `web.cors`, `web.cookies`,
+`web.wellknown`, et quatre adaptateurs d'outils réels (`tool.nuclei`, `tool.nmap`,
+`tool.gobuster`, `tool.sqlmap`). Le **rappel reste plafonné** par construction : l'IA ne trouve que
 ce que ces sondes savent observer, et les adaptateurs ne rapportent que si l'outil est installé
 (hors conteneur, ils se sautent proprement → couverture réduite). *Piste :* enrichir le registre
 (`tools/probes/`, `tools/adapters/`) — l'ajout est mécanique — tout en gardant la discipline
@@ -154,7 +158,7 @@ détection/preuve.
 
 ### Limite résiduelle : un outil externe n'est plus arbitré une fois lancé
 
-Les adaptateurs (`nuclei`/`nmap`/`sqlmap`) sont des **binaires** qui font leurs propres appels
+Les adaptateurs (`nuclei`/`nmap`/`sqlmap`/`gobuster`) sont des **binaires** qui font leurs propres appels
 réseau : ils n'empruntent pas le `GuardedHttpClient`. Le confinement est donc **pré-lancement**
 seulement — `guard.authorize(target, intensity)` avant tout `subprocess`, cible unique, options
 sûres (pas de `dos`, pas de `--dump`), timeout, skip si absent. **Une fois le binaire lancé sur

@@ -1,9 +1,0 @@
-[
- {"id": "service", "ip": "78.232.7.202:443", "port": "443", "severity": "INFO", "finding": "HTTP service detected (via ALPN)"},
- {"id": "protocol", "ip": "78.232.7.202:443", "port": "443", "severity": "WARN", "finding": "TLS 1.0 offered"},
- {"id": "protocol", "ip": "78.232.7.202:443", "port": "443", "severity": "WARN", "finding": "TLS 1.1 offered"},
- {"id": "server_defaults", "ip": "78.232.7.202:443", "port": "443", "severity": "INFO", "finding": "TLS 1.2 sig algs: rsa_pss_rsae_sha256"},
- {"id": "hsts", "ip": "78.232.7.202:443", "port": "443", "severity": "WARN", "finding": "HSTS NOT offered"},
- {"id": "heartbleed", "ip": "78.232.7.202:443", "port": "443", "severity": "OK", "finding": "not vulnerable"},
- {"id": "scanTime", "ip": "78.232.7.202:443", "port": "443", "severity": "INFO", "finding": "Scan done in 12 seconds"}
-]

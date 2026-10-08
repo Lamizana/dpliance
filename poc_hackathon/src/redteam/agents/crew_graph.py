@@ -1,22 +1,11 @@
 """Graphe multi-agents (crew) : recon → planner → attacker → verifier → reporter,
-avec une boucle de replanification bornée (adaptativité).
-
-Le replan **relance le LLM recon** avec un feedback (steps exécutés, candidats
-écartés) : sans cela, il se contentait d'incrémenter un compteur et repassait
-par un planner qui n'avait aucune hypothèse nouvelle à proposer (constat 2
-d'audit/06-outils-et-prompts.md)."""
+avec une boucle de replanification bornée (adaptativité)."""
 from __future__ import annotations
 
 from langgraph.graph import END, START, StateGraph
 
-from redteam.agents.nodes import (
-    attacker_node,
-    now_iso,
-    planner_node,
-    recon_node,
-    reporter_node,
-    verifier_node,
-)
+from redteam.agents.nodes import (attacker_node, now_iso, planner_node, recon_node,
+                                   reporter_node, verifier_node)
 from redteam.agents.state import AuditState
 from redteam.monitoring.trace import TraceEvent
 
@@ -27,20 +16,6 @@ def _route_after_verify(state: AuditState) -> str:
     return "report"
 
 
-def _replan_feedback(state: AuditState) -> str:
-    """Bloc de feedback envoyé au LLM recon lors du replan."""
-    executed = sorted(state.get("executed_steps") or set())
-    discarded = state.get("_discarded") or []
-    lines = ["Feedback from the previous pass (propose NEW checks only):"]
-    if executed:
-        lines.append("Already executed (do not propose again): "
-                     + ", ".join(f"{m} -> {t}" for m, t in executed))
-    if discarded:
-        lines.append("Candidates that failed verification (investigate differently): "
-                     + "; ".join(discarded))
-    return "\n".join(lines)
-
-
 async def _replan_node(state: AuditState) -> AuditState:
     state["replans"] = state.get("replans", 0) + 1
     trace = state.get("trace")
@@ -48,10 +23,6 @@ async def _replan_node(state: AuditState) -> AuditState:
         trace.emit(TraceEvent(ts=now_iso(), run_id=state["run_id"], mode=state["mode"],
                               agent="planner", phase="plan", type="strategy_change",
                               rationale=f"replanification #{state['replans']}"))
-    # Relance le recon LLM avec feedback → nouvelles hypothèses pour le planner.
-    state["_recon_extra"] = _replan_feedback(state)
-    state = await recon_node(state)
-    state["_recon_extra"] = ""
     return state
 
 

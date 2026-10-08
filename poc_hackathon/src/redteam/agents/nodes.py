@@ -39,14 +39,7 @@ async def recon_node(state: AuditState) -> AuditState:
     surface = state.get("surface")
     summary = "" if surface is None else "\n".join(
         f"{p.url} [{p.status}] server={p.headers.get('server', '')}" for p in surface.pages[:30])
-    user = f"Surface map:\n{summary}"
-    # Feedback de replan (axe P1) : le replan relance ce même nœud en lui disant
-    # ce qui a déjà été exécuté et quels candidats ont été écartés, pour que le
-    # LLM propose des hypothèses NOUVELLES au lieu de rejouer la première passe.
-    extra = state.get("_recon_extra")
-    if extra:
-        user = f"{user}\n{extra}"
-    res = state["backend"].complete(RECON_SYSTEM, user)
+    res = state["backend"].complete(RECON_SYSTEM, f"Surface map:\n{summary}")
     _emit(state, agent="recon", phase="recon", type="llm_call", model=res.model,
           tokens_in=res.tokens_in, tokens_out=res.tokens_out, latency_ms=res.latency_ms)
     hyps: list[Hypothesis] = []
@@ -160,10 +153,6 @@ async def verifier_node(state: AuditState) -> AuditState:
     confirmed = state.get("confirmed") or []
     confirmed.extend(v for v in verified if v["status"] == "confirmed")
     state["confirmed"] = confirmed
-    # Titres écartés conservés pour le feedback de replan (axe P1).
-    discarded = state.get("_discarded") or []
-    discarded.extend(v["finding"].title for v in verified if v["status"] == "discarded")
-    state["_discarded"] = discarded
     state["_verified_count"] = offset + len(verified)
     return state
 

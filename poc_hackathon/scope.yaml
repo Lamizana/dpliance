@@ -4,7 +4,6 @@ authorized:
   - hackathon.mirage-analytics.com
   - ws.hackathon.mirage-analytics.com
   - sdk.hackathon.mirage-analytics.com
-  - localhost
   ips:
   - 78.232.7.202/32
   - 2001:bc8:1210:17d6:dc00:ff:feee:925e/128
@@ -16,7 +15,7 @@ limits:
 mandate_ref: HACKATHON-NEOLOJI-2026
 mission: "Audit Red Team IA \u2014 cible Mirage (hackathon Neoloji)"
 sandbox: {}
-signature: a965b4014132e00be3d3c699d7e1db4d1f81a767b77d33ddc6c66641f0f5cff0
+signature: 2f4e27a5d4a6bfe531ec6f77be8c0ee00f267f46f25fe1308b37bdb40882b5f9
 window:
   end: '2026-12-31'
   start: '2026-10-01'

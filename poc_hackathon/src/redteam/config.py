@@ -22,6 +22,6 @@ def load_settings() -> Settings:
         featherless_api_key=os.getenv("FEATHERLESS_API_KEY"),
         base_url=os.getenv("FEATHERLESS_BASE_URL", DEFAULT_BASE_URL),
         model=os.getenv("REDTEAM_MODEL", DEFAULT_MODEL),
-        target=os.getenv("MIRAGE_TARGET", "https://hackathon.mirage-analytics.com/fr/"),
+        target=os.getenv("MIRAGE_TARGET", "http://localhost:8080"),
         signing_key=os.getenv("REDTEAM_SIGNING_KEY"),
     )

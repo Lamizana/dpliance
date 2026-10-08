@@ -1,4 +1,4 @@
-# Image d'audit « outils réels » : Debian + nuclei / nmap / sqlmap + le PoC redteam-ia.
+# Image d'audit « outils réels » : Debian + nuclei / nmap / sqlmap / gobuster + le PoC redteam-ia.
 # Les adaptateurs détectent l'absence d'un binaire et se sautent proprement ; cette image
 # fournit les trois outils pour une couverture complète.
 FROM debian:bookworm-slim
@@ -12,6 +12,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update && apt-get install -y --no-install-recommends \
         nmap \
         sqlmap \
+        gobuster \
+        nc \
         ca-certificates \
         curl \
         unzip \
@@ -37,28 +39,6 @@ RUN set -eux; \
 # Pré-embarquer la base de templates au build (sinon nuclei la télécharge au 1er run
 # et dépasse le timeout de l'adaptateur). Non bloquant si le fetch échoue.
 RUN nuclei -update-templates 2>&1 | tail -3 || echo "prefetch templates échoué — fallback runtime"
-
-# ffuf : binaire GitHub release épinglé (amd64/arm64), comme nuclei.
-ARG FFUF_VERSION=v2.1.0
-RUN set -eux; \
-    ARCH="$(dpkg --print-architecture)"; \
-    case "$ARCH" in amd64) FARCH=amd64;; arm64) FARCH=arm64;; *) FARCH=amd64;; esac; \
-    curl -fsSL "https://github.com/ffuf/ffuf/releases/download/${FFUF_VERSION}/ffuf_${FFUF_VERSION#v}_linux_${FARCH}.tar.gz" \
-      -o /tmp/ffuf.tgz; \
-    tar -xzf /tmp/ffuf.tgz -C /usr/local/bin ffuf; \
-    chmod +x /usr/local/bin/ffuf; rm /tmp/ffuf.tgz; \
-    ffuf -V
-
-# testssl.sh : paquet Debian bookworm (pas de clone git).
-RUN apt-get update && apt-get install -y --no-install-recommends testssl.sh && \
-    rm -rf /var/lib/apt/lists/* && testssl.sh --help 2>&1 | head -1
-
-# Wordlist ffuf : fallback versionné dans le repo, remplacé par raft-small au build.
-COPY config/wordlists/ /opt/wordlists/
-RUN curl -fsSL "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/raft-small-words.txt" \
-      -o /opt/wordlists/ffuf-raft-small.txt || \
-    cp /opt/wordlists/ffuf-fallback.txt /opt/wordlists/ffuf-raft-small.txt; \
-    test -s /opt/wordlists/ffuf-raft-small.txt
 
 WORKDIR /app
 

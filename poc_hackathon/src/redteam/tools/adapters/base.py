@@ -22,9 +22,6 @@ class ToolAdapter:
     binary: str = ""
     timeout: float = 120.0
     max_output: int = 1_000_000
-    # Flux dont `run()` alimente `parse()` : "stdout" par défaut ; "stderr" pour
-    # les outils qui écrivent leur sortie machine sur stderr (testssl.sh).
-    result_stream: str = "stdout"
 
     def build_argv(self, target: str) -> list[str]:
         raise NotImplementedError
@@ -57,7 +54,6 @@ class ToolAdapter:
             return ProbeResult(found=False, evidence=f"timeout : {exc}")
         except Exception as exc:  # noqa: BLE001 - un outil qui échoue ne casse pas l'audit
             return ProbeResult(found=False, evidence=f"échec d'exécution : {exc}")
-        text = _err if self.result_stream == "stderr" else out
-        findings = self.parse(text, target)
+        findings = self.parse(out, target)
         evidence = f"{self.binary}: {len(findings)} résultat(s)" if findings else f"{self.binary}: aucun résultat"
         return ProbeResult(found=bool(findings), evidence=evidence, findings=findings)

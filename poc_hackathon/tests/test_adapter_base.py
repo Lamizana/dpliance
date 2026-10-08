@@ -68,30 +68,3 @@ async def test_timeout_returns_not_found(monkeypatch):
 
 async def _ok(out):
     return (0, out, "")
-
-
-async def test_result_stream_defaults_to_stdout():
-    assert getattr(_FakeAdapter, "result_stream", None) == "stdout"
-
-
-async def test_result_stream_stderr_reads_stderr(monkeypatch):
-    class _ErrAdapter(_FakeAdapter):
-        result_stream = "stderr"
-
-    seen = {}
-
-    def _parse(self, text, target):
-        seen["text"] = text
-        return []
-
-    a = _ErrAdapter()
-    monkeypatch.setattr("redteam.tools.adapters.base.shutil.which", lambda b: "/usr/bin/" + b)
-    monkeypatch.setattr(_ErrAdapter, "parse", _parse)
-    monkeypatch.setattr(_ErrAdapter, "_exec", lambda self, argv: _ok_screen_and_json())
-    res = await a.run(_client(), "http://localhost/")
-    assert res.found is False          # parse a renvoyé []
-    assert seen["text"] == "JSON-BLOB"  # lu sur stderr, pas sur stdout
-
-
-async def _ok_screen_and_json():
-    return (0, "SCREEN-OUTPUT", "JSON-BLOB")

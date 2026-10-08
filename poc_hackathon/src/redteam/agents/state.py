@@ -38,7 +38,3 @@ class AuditState(TypedDict, total=False):
     _transport: Any
     _crawl_pages: int
     _verified_count: int
-    # feedback injecté avant un replan (steps exécutés + candidats écartés)
-    _recon_extra: str
-    # titres des candidats écartés par le verifier (feedback de replan)
-    _discarded: list[str]

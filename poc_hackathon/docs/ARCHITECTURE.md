@@ -78,11 +78,12 @@ ne permet de contacter une cible non autorisée.
 
 ### 2.1 Adaptateurs d'outils externes (`tools/adapters/`)
 
-Pour une couverture réelle, le PoC intègre de vrais outils (`nuclei`, `nmap`, `sqlmap`) sous
+Pour une couverture réelle, le PoC intègre de vrais outils (`nuclei`, `nmap`, `sqlmap`,
+`gobuster`) sous
 forme d'**adaptateurs**. La classe de base `ToolAdapter` **implémente le contrat `Probe`**
 (mêmes `id`, `intensity`, `description`, même `run(client, target) -> ProbeResult`) : pour le
 reste du système, un adaptateur est une sonde comme une autre, enregistrée dans `registry.py`
-(`tool.nuclei`, `tool.nmap` en `active` ; `tool.sqlmap` en `intrusive`).
+(`tool.nuclei`, `tool.nmap`, `tool.gobuster` en `active` ; `tool.sqlmap` en `intrusive`).
 
 **Problème de sûreté.** Ces outils sont des **binaires** qui font leurs propres appels réseau :
 ils **n'empruntent pas** le `GuardedHttpClient` et échappent donc à l'arbitrage requête-par-
@@ -95,7 +96,9 @@ temps :
 2. **Mono-cible** : `build_argv(target)` ne passe qu'**un seul hôte/URL** avec des options qui
    empêchent l'outil de divaguer (nmap réduit au seul hôte ; nuclei reçoit l'URL cible via
    `-target <url>` ; sqlmap `--crawl=0`,
-   **jamais** `--dump` ; nmap script `vuln and not dos`, **jamais** la catégorie `dos`).
+   **jamais** `--dump` ; nmap script `vuln and not dos`, **jamais** la catégorie `dos` ;
+   gobuster reçoit l'URL via `-u` et une **wordlist maison bornée** `tools/wordlists/top-paths.txt`
+   (≤ 100 entrées) avec threads bas + délai entre requêtes, sans follow-redirect).
 3. **Bornage** : `timeout` d'exécution (le process est tué au dépassement) et plafond de taille
    de sortie capturée.
 4. **Skip propre** : `shutil.which(self.binary) is None` → `ProbeResult(found=False, …)` sans
@@ -107,7 +110,7 @@ temps :
 > options réduisent fortement ce risque ; il est documenté dans `METHODOLOGIE.md`.
 
 **N findings par run.** Un outil produit souvent **plusieurs** résultats. `ProbeResult` porte
-donc une liste `findings: list[Finding]` (en plus du `finding` unique historique des 4 sondes
+donc une liste `findings: list[Finding]` (en plus du `finding` unique historique des sondes
 maison) ; `ProbeResult.all_findings()` unifie les deux. L'`attacker` collecte
 `result.all_findings()`.
 

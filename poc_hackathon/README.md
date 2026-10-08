@@ -95,10 +95,11 @@ Docker fournie (base Debian) les embarque pour un audit complet.
 |---|---|---|---|
 | `tool.nuclei` | **nuclei** | active | Détection par templates (preuve JSON reproductible). |
 | `tool.nmap` | **nmap** | active | Services/versions + scripts NSE `vuln and not dos`. |
+| `tool.gobuster` | **gobuster** | active | Découverte de contenu (wordlist maison bornée ≤ 100 entrées). |
 | `tool.sqlmap` | **sqlmap** | intrusive | Preuve d'exploitation SQLi (sans `--dump`). |
 
 ```bash
-# Construire l'image (installe nuclei + nmap + sqlmap + le PoC)
+# Construire l'image (installe nuclei + nmap + sqlmap + gobuster + le PoC)
 docker build -t redteam-ia .
 
 # Lancer un audit ; .env fournit les clés/cibles, runs/ est monté pour récupérer les sorties
@@ -117,7 +118,9 @@ L'`ENTRYPOINT` de l'image est la commande `redteam` : les arguments passés à `
 Aux côtés de ces adaptateurs, la sonde HTTP maison **`web.availability`** (active) prouve les
 **faiblesses menant à un déni de service** (`xmlrpc.php` exposé, absence de rate-limiting
 observable, absence d'empreinte de WAF/CDN) **sans mettre la cible en charge** — elle ne requiert
-aucun binaire externe.
+aucun binaire externe. Trois autres sondes maison complémentaires : **`web.cors`** (active,
+Origin reflété), **`web.cookies`** (passive, flags `HttpOnly`/`Secure`/`SameSite`) et
+**`web.wellknown`** (passive, chemins sensibles exposés par `robots.txt`).
 
 ---
 
@@ -179,9 +182,6 @@ des sections déterministes (périmètre, intégrité d'audit, métriques du run
 
 ## Documentation
 
-- [`docs/DOSSIER-RENDU.md`](docs/DOSSIER-RENDU.md) — **dossier de rendu hackathon (jury)** :
-  architecture, benchmarks expliqués (crew vs single) et expérimentation sur le choix du
-  modèle LLM.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — couches, flux `crew`/`single`, `ScopeGuard`,
   modèle `TraceEvent`, correspondance avec les livrables du hackathon.
 - [`docs/METHODOLOGIE.md`](docs/METHODOLOGIE.md) — comment les métriques répondent aux questions
