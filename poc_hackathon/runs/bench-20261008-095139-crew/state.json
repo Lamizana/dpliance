@@ -1,0 +1,22 @@
+{
+  "confirmed": [
+    {
+      "id": "F1",
+      "title": "En-têtes de sécurité manquants",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F2",
+      "title": "Divulgation de version logicielle",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F3",
+      "title": "Fichiers/endpoints sensibles exposés",
+      "status": "confirmed",
+      "confidence": 1.0
+    }
+  ]
+}

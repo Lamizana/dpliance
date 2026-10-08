@@ -1,0 +1,2 @@
+{"template-id":"http-missing-security-headers","info":{"name":"Missing Security Headers","severity":"info"},"matched-at":"http://localhost/","matcher-name":"strict-transport-security"}
+{"template-id":"CVE-2021-12345","info":{"name":"Example RCE","severity":"critical","reference":["https://nvd.nist.gov/vuln/detail/CVE-2021-12345"]},"matched-at":"http://localhost/app"}

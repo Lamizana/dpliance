@@ -1,0 +1,64 @@
+{
+  "confirmed": [
+    {
+      "id": "F1",
+      "title": "En-têtes de sécurité manquants",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F2",
+      "title": "Divulgation de version logicielle",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F3",
+      "title": "Aucune limitation de débit observable",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F4",
+      "title": "Aucune empreinte de WAF détectée",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F5",
+      "title": "WAF Detection [waf-detect]",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F6",
+      "title": "SSH Auth Methods - Detection [ssh-auth-methods]",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F7",
+      "title": "SSH SHA-1 HMAC Algorithms Enabled [ssh-sha1-hmac-algo]",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F8",
+      "title": "SSH Server Software Enumeration [ssh-server-enumeration]",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F9",
+      "title": "TLS Version - Detect [tls-version]",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F13",
+      "title": "HTTP Missing Security Headers [http-missing-security-headers]",
+      "status": "confirmed",
+      "confidence": 1.0
+    }
+  ]
+}

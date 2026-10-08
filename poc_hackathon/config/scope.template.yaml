@@ -1,0 +1,22 @@
+mission: "Audit Red Team IA — cible Mirage (hackathon Neoloji)"
+mandate_ref: "HACKATHON-NEOLOJI-2026"
+client_contact: "contact@mirage-analytics.com"
+authorized:
+  domains:
+    - "hackathon.mirage-analytics.com"
+    - "ws.hackathon.mirage-analytics.com"
+    - "sdk.hackathon.mirage-analytics.com"
+  ips:
+    # Serveur web (IPv4 + IPv6)
+    - "78.232.7.202/32"
+    - "2001:bc8:1210:17d6:dc00:ff:feee:925e/128"
+    # Base de données (port 1661 — non vérifié par le guard, pour information)
+    - "78.232.49.67/32"
+excluded: []
+window:
+  start: "2026-10-01"
+  end: "2026-12-31"
+allowed_intensity: "active"
+sandbox: {}
+limits:
+  max_requests_per_module: 500

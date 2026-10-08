@@ -1,0 +1,27 @@
+{
+  "commandLine": "ffuf -u https://hackathon.mirage-analytics.com/FUZZ -w /opt/wordlists/ffuf-raft-small.txt -of json -o /dev/stdout",
+  "time": "2026-10-08T10:00:00+02:00",
+  "results": [
+    {"input": {"FUZZ": "admin"}, "position": 1, "status": 403, "length": 280,
+     "words": 9, "lines": 9, "content-type": "text/html", "redirectlocation": "",
+     "url": "https://hackathon.mirage-analytics.com/admin",
+     "host": "https://hackathon.mirage-analytics.com"},
+    {"input": {"FUZZ": "backup"}, "position": 2, "status": 200, "length": 4210,
+     "words": 120, "lines": 300, "content-type": "text/html", "redirectlocation": "",
+     "url": "https://hackathon.mirage-analytics.com/backup",
+     "host": "https://hackathon.mirage-analytics.com"},
+    {"input": {"FUZZ": "old"}, "position": 3, "status": 301, "length": 0,
+     "words": 1, "lines": 1, "content-type": "text/html",
+     "redirectlocation": "https://hackathon.mirage-analytics.com/old/",
+     "url": "https://hackathon.mirage-analytics.com/old",
+     "host": "https://hackathon.mirage-analytics.com"},
+    {"input": {"FUZZ": "api"}, "position": 4, "status": 405, "length": 12,
+     "words": 2, "lines": 1, "content-type": "application/json", "redirectlocation": "",
+     "url": "https://hackathon.mirage-analytics.com/api",
+     "host": "https://hackathon.mirage-analytics.com"},
+    {"input": {"FUZZ": "missing"}, "position": 5, "status": 404, "length": 15,
+     "words": 3, "lines": 1, "content-type": "text/html", "redirectlocation": "",
+     "url": "https://hackathon.mirage-analytics.com/missing",
+     "host": "https://hackathon.mirage-analytics.com"}
+  ]
+}

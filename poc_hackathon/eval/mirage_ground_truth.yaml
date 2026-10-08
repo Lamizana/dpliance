@@ -1,0 +1,6 @@
+# Vulnérabilités connues de la cible Mirage (à ajuster selon le déploiement réel).
+# Sert à calculer précision/rappel de l'audit IA.
+known_findings:
+  - probe_id: web.security_headers
+  - probe_id: web.version_disclosure
+  - probe_id: web.reflected_input

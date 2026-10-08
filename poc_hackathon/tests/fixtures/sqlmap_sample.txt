@@ -1,0 +1,7 @@
+[INFO] testing connection to the target URL
+[INFO] GET parameter 'id' is 'MySQL >= 5.0 boolean-based blind' injectable
+sqlmap identified the following injection point(s):
+Parameter: id (GET)
+    Type: boolean-based blind
+[INFO] the back-end DBMS is MySQL
+banner: '5.7.38-log'

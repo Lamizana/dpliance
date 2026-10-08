@@ -1,0 +1,118 @@
+{
+  "confirmed": [
+    {
+      "id": "F1",
+      "title": "En-têtes de sécurité manquants",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F2",
+      "title": "En-têtes de sécurité manquants",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F3",
+      "title": "Divulgation de version logicielle",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F4",
+      "title": "Fichiers/endpoints sensibles exposés",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F5",
+      "title": "Fichiers/endpoints sensibles exposés",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F6",
+      "title": "Fichiers/endpoints sensibles exposés",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F7",
+      "title": "Aucune limitation de débit observable",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F8",
+      "title": "Aucune empreinte de WAF détectée",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F9",
+      "title": "WAF Detection [waf-detect]",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F10",
+      "title": "SSH Auth Methods - Detection [ssh-auth-methods]",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F11",
+      "title": "SSH Server Software Enumeration [ssh-server-enumeration]",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F12",
+      "title": "SSH SHA-1 HMAC Algorithms Enabled [ssh-sha1-hmac-algo]",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F13",
+      "title": "TLS Version - Detect [tls-version]",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F14",
+      "title": "llms.txt - Enumeration [llms-file-enum]",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F15",
+      "title": "Email Extractor [email-extractor]",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F16",
+      "title": "Angular detect [angular-detect]",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F17",
+      "title": "Nginx version detect [nginx-version]",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F19",
+      "title": "Wappalyzer Technology Detection [tech-detect]",
+      "status": "confirmed",
+      "confidence": 1.0
+    },
+    {
+      "id": "F20",
+      "title": "HTTP Missing Security Headers [http-missing-security-headers]",
+      "status": "confirmed",
+      "confidence": 1.0
+    }
+  ]
+}

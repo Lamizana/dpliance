@@ -1,0 +1,150 @@
+# Rapport d'audit — Red Team IA
+
+- **Mission :** Audit Red Team IA — cible Mirage (hackathon Neoloji)
+- **Mandat :** HACKATHON-NEOLOJI-2026
+
+**Synthèse :** L’audit confirme l’exposition de fichiers/endpoints sensibles, l’absence d’en-têtes de sécurité, l’exposition du point xmlrpc.php avec risque possible d’amplification DoS, l’absence de limitation de débit observable et la divulgation de version logicielle, accompagnés de constats informatifs concernant la détection WAF, les méthodes d’authentification SSH, l’énumération du serveur SSH, les algorithmes SSH SHA-1 HMAC, les versions TLS, robots.txt, la détection de technologies et le fichier llms.txt.
+
+## Métriques
+
+- **run_id :** 20261008-084754
+- **mode :** crew
+- **duration_s :** 1058.469
+- **llm_calls :** 2
+- **tokens_in :** 1070
+- **tokens_out :** 3058
+- **tool_calls :** 18
+- **raw_count :** 19
+- **confirmed_count :** 18
+- **discarded_count :** 1
+- **replans :** 1
+- **errors :** 0
+
+## Findings confirmés
+
+### [HIGH] F4 — Fichiers/endpoints sensibles exposés
+
+- **Cible :** https://hackathon.mirage-analytics.com/fr/auth/login
+- **Confiance :** 1.00
+- **Preuve :** accessibles (200) : /.git/config, /.env, /server-status, /phpinfo.php
+- **Remédiation (OWASP — Sensitive Data Exposure) :** Bloquer l'accès public à ces chemins (403/404).
+
+### [HIGH] F5 — Fichiers/endpoints sensibles exposés
+
+- **Cible :** https://hackathon.mirage-analytics.com/fr/subscribe
+- **Confiance :** 1.00
+- **Preuve :** accessibles (200) : /.git/config, /.env, /server-status, /phpinfo.php
+- **Remédiation (OWASP — Sensitive Data Exposure) :** Bloquer l'accès public à ces chemins (403/404).
+
+### [HIGH] F6 — Fichiers/endpoints sensibles exposés
+
+- **Cible :** https://hackathon.mirage-analytics.com/fr/app
+- **Confiance :** 1.00
+- **Preuve :** accessibles (200) : /.git/config, /.env, /server-status, /phpinfo.php
+- **Remédiation (OWASP — Sensitive Data Exposure) :** Bloquer l'accès public à ces chemins (403/404).
+
+### [MEDIUM] F1 — En-têtes de sécurité manquants
+
+- **Cible :** https://hackathon.mirage-analytics.com/fr/
+- **Confiance :** 1.00
+- **Preuve :** en-têtes manquants : strict-transport-security, content-security-policy, x-frame-options, x-content-type-options
+- **Remédiation (OWASP Secure Headers Project) :** Ajouter HSTS, CSP, X-Frame-Options, X-Content-Type-Options.
+
+### [MEDIUM] F2 — En-têtes de sécurité manquants
+
+- **Cible :** https://hackathon.mirage-analytics.com/fr/auth/login
+- **Confiance :** 1.00
+- **Preuve :** en-têtes manquants : strict-transport-security, content-security-policy, x-frame-options, x-content-type-options
+- **Remédiation (OWASP Secure Headers Project) :** Ajouter HSTS, CSP, X-Frame-Options, X-Content-Type-Options.
+
+### [MEDIUM] F7 — Point xmlrpc.php exposé (amplification DoS possible)
+
+- **Cible :** https://hackathon.mirage-analytics.com/fr/app
+- **Confiance :** 1.00
+- **Preuve :** Point xmlrpc.php exposé (amplification DoS possible); Aucune limitation de débit observable; Aucune empreinte de WAF détectée
+- **Remédiation (OWASP — Denial of Service Cheat Sheet) :** Bloquer ou désactiver xmlrpc.php s'il n'est pas requis.
+
+### [MEDIUM] F8 — Aucune limitation de débit observable
+
+- **Cible :** https://hackathon.mirage-analytics.com/fr/app
+- **Confiance :** 1.00
+- **Preuve :** Point xmlrpc.php exposé (amplification DoS possible); Aucune limitation de débit observable; Aucune empreinte de WAF détectée
+- **Remédiation (OWASP — Denial of Service Cheat Sheet) :** Appliquer une limitation de débit par IP/clé au niveau du proxy ou de l'application.
+
+### [LOW] F3 — Divulgation de version logicielle
+
+- **Cible :** https://hackathon.mirage-analytics.com/fr/
+- **Confiance :** 1.00
+- **Preuve :** server: nginx/1.29.3
+- **Remédiation (OWASP Testing Guide — Fingerprinting) :** Masquer les numéros de version dans les en-têtes.
+
+### [LOW] F9 — Aucune empreinte de WAF détectée
+
+- **Cible :** https://hackathon.mirage-analytics.com/fr/app
+- **Confiance :** 1.00
+- **Preuve :** Point xmlrpc.php exposé (amplification DoS possible); Aucune limitation de débit observable; Aucune empreinte de WAF détectée
+- **Remédiation (OWASP — Denial of Service Cheat Sheet) :** Placer un WAF/CDN devant le service pour absorber les pics de trafic malveillant.
+
+### [INFO] F10 — WAF Detection [waf-detect]
+
+- **Cible :** https://hackathon.mirage-analytics.com
+- **Confiance :** 1.00
+- **Preuve :** nuclei: 9 résultat(s)
+- **Remédiation (https://github.com/Ekultek/WhatWaf) :** Corriger selon le template nuclei.
+
+### [INFO] F11 — SSH Auth Methods - Detection [ssh-auth-methods]
+
+- **Cible :** https://hackathon.mirage-analytics.com
+- **Confiance :** 1.00
+- **Preuve :** nuclei: 9 résultat(s)
+- **Remédiation (https://nmap.org/nsedoc/scripts/ssh-auth-methods.html) :** Corriger selon le template nuclei.
+
+### [INFO] F12 — SSH Server Software Enumeration [ssh-server-enumeration]
+
+- **Cible :** https://hackathon.mirage-analytics.com
+- **Confiance :** 1.00
+- **Preuve :** nuclei: 9 résultat(s)
+- **Remédiation (nuclei) :** Corriger selon le template nuclei.
+
+### [INFO] F13 — SSH SHA-1 HMAC Algorithms Enabled [ssh-sha1-hmac-algo]
+
+- **Cible :** https://hackathon.mirage-analytics.com
+- **Confiance :** 1.00
+- **Preuve :** nuclei: 9 résultat(s)
+- **Remédiation (https://forums.ivanti.com/s/article/How-to-disable-SSH-SHA-1-HMAC-algorithms?language=en_US) :** Corriger selon le template nuclei.
+
+### [INFO] F14 — TLS Version - Detect [tls-version]
+
+- **Cible :** https://hackathon.mirage-analytics.com
+- **Confiance :** 1.00
+- **Preuve :** nuclei: 9 résultat(s)
+- **Remédiation (nuclei) :** Corriger selon le template nuclei.
+
+### [INFO] F15 — robots.txt file [robots-txt]
+
+- **Cible :** https://hackathon.mirage-analytics.com
+- **Confiance :** 1.00
+- **Preuve :** nuclei: 9 résultat(s)
+- **Remédiation (nuclei) :** Corriger selon le template nuclei.
+
+### [INFO] F16 — Wappalyzer Technology Detection [tech-detect]
+
+- **Cible :** https://hackathon.mirage-analytics.com
+- **Confiance :** 1.00
+- **Preuve :** nuclei: 9 résultat(s)
+- **Remédiation (nuclei) :** Corriger selon le template nuclei.
+
+### [INFO] F17 — llms.txt - Enumeration [llms-file-enum]
+
+- **Cible :** https://hackathon.mirage-analytics.com
+- **Confiance :** 1.00
+- **Preuve :** nuclei: 9 résultat(s)
+- **Remédiation (nuclei) :** Corriger selon le template nuclei.
+
+### [INFO] F19 — HTTP Missing Security Headers [http-missing-security-headers]
+
+- **Cible :** https://hackathon.mirage-analytics.com
+- **Confiance :** 1.00
+- **Preuve :** nuclei: 9 résultat(s)
+- **Remédiation (nuclei) :** Corriger selon le template nuclei.
+
