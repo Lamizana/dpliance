@@ -12,6 +12,7 @@ from redteam.benchmark.compare import compare_runs, load_ground_truth, quality_r
 from redteam.benchmark.metrics import RunMetrics, quality
 from redteam.config import load_settings
 from redteam.llm.backend import FeatherlessBackend, MockBackend
+from redteam.monitoring.langsmith import activate_langsmith
 from redteam.monitoring.live import LiveConsole
 from redteam.monitoring.trace import TraceLog
 from redteam.runner import build_state, run_graph
@@ -63,6 +64,7 @@ def scope_show():
 @app.command()
 def run(mode: str = "crew", target: str = "", mock: bool = False):
     settings = load_settings()
+    activate_langsmith(settings)  # tracing LangSmith avant le premier appel LLM
     target = target or settings.target
     scope, guard = prepare_scope(target)
     run_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -87,6 +89,7 @@ def run(mode: str = "crew", target: str = "", mock: bool = False):
 @app.command()
 def benchmark(modes: str = "single,crew", target: str = "", mock: bool = False):
     settings = load_settings()
+    activate_langsmith(settings)  # tracing LangSmith avant le premier appel LLM
     target = target or settings.target
     truth_ids = load_ground_truth(GROUND_TRUTH)
     results: list[RunMetrics] = []

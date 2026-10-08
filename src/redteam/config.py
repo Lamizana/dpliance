@@ -15,6 +15,8 @@ class Settings(BaseModel):
     model: str = DEFAULT_MODEL
     target: str = "http://localhost:8080"
     signing_key: str | None = None
+    langsmith_api_key: str | None = None
+    langsmith_project: str | None = None
 
 
 def load_settings() -> Settings:
@@ -24,4 +26,6 @@ def load_settings() -> Settings:
         model=os.getenv("REDTEAM_MODEL", DEFAULT_MODEL),
         target=os.getenv("MIRAGE_TARGET", "http://localhost:8080"),
         signing_key=os.getenv("REDTEAM_SIGNING_KEY"),
+        langsmith_api_key=os.getenv("LANGSMITH_API_KEY"),
+        langsmith_project=os.getenv("LANGSMITH_PROJECT"),
     )

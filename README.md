@@ -58,6 +58,8 @@ ou en activant l'environnement avec `source .venv/bin/activate`.
 | `REDTEAM_MODEL` | Modèle par défaut. | `huihui-ai/Huihui-Qwen3.8-27B-abliterated` |
 | `MIRAGE_TARGET` | Cible autorisée (URL de la copie Mirage). | `http://localhost:8080` |
 | `REDTEAM_SIGNING_KEY` | Clé HMAC pour sceller le scope et ancrer l'audit. | *(repli : `REDSCOPE_SIGNING_KEY`)* |
+| `LANGSMITH_API_KEY` | Clé LangSmith (tracing). Sans clé, aucun appel réseau : le PoC reste entièrement hors ligne. | *(vide → tracing désactivé)* |
+| `LANGSMITH_PROJECT` | Projet LangSmith où les traces sont écrites. | `redteam-ia` |
 
 Sans clé Featherless, le PoC bascule automatiquement sur un **backend mock déterministe** et
 tourne **entièrement hors ligne** (également forçable avec `--mock`). Toute la suite de tests
@@ -143,6 +145,13 @@ Chaque exécution isole ses artefacts dans `runs/<mode>-<run_id>/` :
 | `state.json` | État final : findings confirmés (id, titre, statut, confiance). |
 
 Le mode `benchmark` écrit en plus un tableau comparatif dans `runs/benchmark.md`.
+
+### Observabilité LangSmith (optionnelle)
+
+Si `LANGSMITH_API_KEY` est renseignée dans `.env`, chaque audit publie ses appels LLM sur
+**LangSmith** (projet par défaut : `redteam-ia`) : runs du graphe, appels LLM nommés
+`redteam_llm_complete` (métadonnées `model` / `layer`). Sans clé, le PoC reste intégralement
+hors ligne — aucun appel réseau n'est émis.
 
 ### Exemple de sortie console
 

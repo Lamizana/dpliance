@@ -41,15 +41,29 @@ class MockBackend:
 
 
 class FeatherlessBackend:
-    """Backend LLM via l'API Featherless (compatible OpenAI)."""
+    """Backend LLM via l'API Featherless (compatible OpenAI).
+
+    Chaque appel est tracé dans LangSmith sous le nom « redteam_llm_complete »
+    (run parent) ; l'appel ChatOpenAI sous-jacent est tracé en run enfant par le
+    tracer LangChain dès que le tracing est activé (voir monitoring.langsmith).
+    Sans clé LangSmith (tracing désactivé), `traceable` est un no-op sûr.
+    """
 
     def __init__(self, api_key: str, base_url: str, model: str):
         from langchain_openai import ChatOpenAI
+        from langsmith import traceable
 
         self.model = model
         self._llm = ChatOpenAI(model=model, api_key=api_key, base_url=base_url)
+        self._traced_complete = traceable(
+            self._complete, name="redteam_llm_complete",
+            metadata={"model": model, "layer": "llm"},
+        )
 
     def complete(self, system: str, user: str) -> LLMResult:
+        return self._traced_complete(system, user)
+
+    def _complete(self, system: str, user: str) -> LLMResult:
         from langchain_core.messages import HumanMessage, SystemMessage
 
         start = time.monotonic()

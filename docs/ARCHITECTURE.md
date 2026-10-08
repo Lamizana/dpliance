@@ -191,6 +191,22 @@ d'audit chaîné** (`safety/audit.AuditLog`, SHA-256). La trace alimente aussi :
 - l'**agrégation de métriques** (`benchmark/metrics.metrics_from_trace`) — un run se mesure
   intégralement à partir de sa trace.
 
+### 4.1 Observabilité LangSmith (optionnelle)
+
+Au-delà de la trace locale, le PoC peut publier ses appels LLM vers **LangSmith** :
+
+- **Activation** : `monitoring/langsmith.activate_langsmith()` est appelée par la CLI (`run`,
+  `benchmark`) dès qu'une clé `LANGSMITH_API_KEY` est présente. Elle pose
+  `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY` et `LANGSMITH_PROJECT`.
+- **Mécanisme** : l'application étant basée sur LangChain/LangGraph, le tracer LangChain
+  capture automatiquement les runs du graphe et des `ChatOpenAI`. Le backend
+  `FeatherlessBackend.complete` est en plus décoré [`@traceable`](../src/redteam/llm/backend.py)
+  : chaque appel LLM devient un run nommé `redteam_llm_complete` avec métadonnées
+  (`model`, `layer`).
+- **Garantie d'offline** : sans `LANGSMITH_API_KEY`, aucune variable n'est basculée et
+  `traceable` est un no-op strict — le PoC reste 100 % hors ligne (testé dans
+  `tests/test_langsmith.py`).
+
 ---
 
 ## 5. Correspondance avec les livrables du hackathon
